@@ -532,11 +532,11 @@ https://cinemaabyss.example.com/api/movies
 
 ----------------------------
 Cкриншоты приложены по адресу:
-1. Логи event-service после тестов: 
-/tests/results/EventServiceLogs_Kuber.png
+1. Выполнение команды kubectl get pods -n cinemaabyss: 
+/tests/results/Task4_GetPodsCinemaabyss.png
 
 2. Вывод результата при вызове https://cinemaabyss.example.com/api/movies:
- /tests/results/cinemaabyss_example_com_api_movies.png
+ /tests/results/Task4_cinaabyss_example_com_api_movies.png
 ---------------------------
 
 # Задание 5
@@ -572,6 +572,11 @@ kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.25/samp
 ```bash
 FORTIO_POD=$(kubectl get pod -n cinemaabyss | grep fortio | awk '{print $1}')
 
+----------------------
+Для windows:
+$FORTIO_POD = kubectl get pod -n cinemaabyss | Select-String "fortio" | ForEach-Object { ($_ -split '\s+')[0] }
+----------------------
+
 kubectl exec -n cinemaabyss $FORTIO_POD -c fortio -- fortio load -c 50 -qps 0 -n 500 -loglevel Warning http://movies-service:8081/api/movies
 ```
 Например,
@@ -594,6 +599,8 @@ Code 503 : 399 (79.8 %)
 ```bash
 kubectl exec -n cinemaabyss fortio-deploy-b6757cbbb-7c9qg -c istio-proxy -- pilot-agent request GET stats | grep movies-service | grep pending
 ```
+Для windows: 
+kubectl exec -n cinemaabyss $FORTIO_POD -c istio-proxy -- pilot-agent request GET stats | Select-String "movies-service" | Select-String "pending"
 
 И там смотрим 
 
@@ -603,6 +610,10 @@ You can see 21 for the upstream_rq_pending_overflow value which means 21 calls s
 ```
 
 Приложите скриншот работы circuit breaker'а
+
+Cкриншоты приложены по адресу:
+1. Статистика, результат: 
+/tests/results/Task5_statistic_result.png
 
 Удаляем все
 ```bash
