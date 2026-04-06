@@ -80,7 +80,9 @@ P.S. для того, чтобы изменения параметра MOVIES_MI
 Создан MVP сервис events на базе платформы .NET.
 Сервис включает в себя consumer и producer, работающие с топиками: movie-events, user-events, payment-events
 А также RestAPI для взаимодействия, за основу был взят API, описанный api-specification.yaml
-Результат выполнения тестов (скриншоты приложены по адресу /tests/results):
+Результат выполнения тестов, скриншоты приложены по адресу:
+1. /tests/results/KafkaAfterTests.png
+2. /tests/results/TestsResult.png
 PS C:\architecture-pro-cinemaabyss\tests\postman> npm run test:local
 
 CinemaAbyss API Tests
@@ -412,6 +414,9 @@ cat .docker/config.json | base64
   - добавьте аддон
   ```bash
   minikube addons enable ingress
+  --------
+  в docker-desctop использовал kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+  --------
   ```
   ```bash
   kubectl apply -f src/kubernetes/ingress.yaml
@@ -422,6 +427,8 @@ cat .docker/config.json | base64
   10. Вызовите
   ```bash
   minikube tunnel
+
+  в docker desctop использовал kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 80:80
   ```
   11. Вызовите https://cinemaabyss.example.com/api/movies
   Вы должны увидеть вывод списка фильмов
@@ -436,7 +443,14 @@ cat .docker/config.json | base64
 
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+----------------------------
+Cкриншоты приложены по адресу:
+1. Логи event-service после тестов: 
+/tests/results/EventServiceLogs_Kuber.png
 
+2. Вывод результата при вызове https://cinemaabyss.example.com/api/movies:
+ /tests/results/cinemaabyss_example_com_api_movies.png
+---------------------------
 
 ## Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
