@@ -1,0 +1,41 @@
+# Build output
+/bin/
+/obj/
+/packages/
+*.user
+*.suo
+*.cache
+
+# Test results
+/TestResults/
+
+# Visual Studio files
+/.vs/
+/.vscode/
+*.sln.ide
+*.sln.docstates
+
+# Rider / JetBrains
+/.idea/
+
+# Docker-related
+/.dockerignore
+
+# App secrets / development settings (если не хотите коммитить)
+/appsettings.Development.json
+/appsettings.Production.json
+
+# NuGet
+/packages/
+*.nupkg
+
+# Logs
+*.log
+/logs/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
