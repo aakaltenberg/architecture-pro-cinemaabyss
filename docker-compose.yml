@@ -96,6 +96,9 @@ services:
     environment:
       PORT: 8082
       KAFKA_BROKERS: kafka:9092
+      KAFKA_TOPIC_MOVIE: movie-events
+      KAFKA_TOPIC_USER: user-events
+      KAFKA_TOPIC_PAYMENT: payment-events
     networks:
       - cinemaabyss-network
 
@@ -117,7 +120,7 @@ services:
       MOVIES_SERVICE_URL: http://movies-service:8081
       EVENTS_SERVICE_URL: http://events-service:8082
       GRADUAL_MIGRATION: "true"
-      MOVIES_MIGRATION_PERCENT: "50"
+      MOVIES_MIGRATION_PERCENT: "100"
     networks:
       - cinemaabyss-network
 

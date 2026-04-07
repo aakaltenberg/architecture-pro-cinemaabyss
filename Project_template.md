@@ -5,8 +5,12 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
 
+---------------------
+1. cd cinema-arch-docs
+2. mkdocs serve
+3. в брауезере перейти по [cinema-c4-container](http://127.0.0.1:8000/cinema-c4-container/) 
+--------------------
 
 ## Задание 2
 
@@ -47,6 +51,23 @@
    ```
 - Протестируйте постепенный переход, изменив переменную окружения MOVIES_MIGRATION_PERCENT в файле docker-compose.yml.
 
+-----------------------------------------------
+Создан новый сервис proxy на базе платформы .NET
+К запросам добавлено логирование пути. 
+При смене  MOVIES_MIGRATION_PERCENT значения на 0, все запросы идут по пути 
+2026-04-06 18:51:07       Routing /api/movies -> http://monolith:8080
+При смене MOVIES_MIGRATION_PERCENT значения на 100, все запросы идут по пути:
+2026-04-06 18:50:03       Routing /api/movies -> http://movies-service:8081
+При смене MOVIES_MIGRATION_PERCENT значения на 50, запросы проходят как в монолит, так и в сервис movies-service:
+2026-04-06 18:54:23       Routing /api/movies -> http://monolith:8080
+2026-04-06 18:54:23       Routing /api/movies -> http://movies-service:8081
+
+P.S. для того, чтобы изменения параметра MOVIES_MIGRATION_PERCENT применились, приложение требуется перезапустить 
+(
+  docker-compose down 
+  docker-compose up -d
+)
+
 ### 2. Kafka
  Вам как архитектуру нужно также проверить гипотезу насколько просто реализовать применение Kafka в данной архитектуре.
 
@@ -58,6 +79,154 @@
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka http://localhost:8090 
+
+-------------------------------------------------------
+Создан MVP сервис events на базе платформы .NET.
+Сервис включает в себя consumer и producer, работающие с топиками: movie-events, user-events, payment-events
+А также RestAPI для взаимодействия, за основу был взят API, описанный api-specification.yaml
+Результат выполнения тестов, скриншоты приложены по адресу:
+1. /tests/results/KafkaAfterTests.png
+2. /tests/results/TestsResult.png
+PS C:\architecture-pro-cinemaabyss\tests\postman> npm run test:local
+
+CinemaAbyss API Tests
+
+□ Monolith Service
+└ Health Check
+  GET http://127.0.0.1:8080/health [200 OK, 124B, 103ms]
+  √  Status code is 200
+
+└ Get All Users
+  GET http://127.0.0.1:8080/api/users [200 OK, 551B, 76ms]
+  √  Status code is 200
+  √  Response is an array
+
+└ Create User
+  POST http://127.0.0.1:8080/api/users [201 Created, 181B, 28ms]
+  √  Status code is 201
+  √  Response has id
+
+└ Get User by ID
+  GET http://127.0.0.1:8080/api/users?id=8 [200 OK, 176B, 11ms]
+  √  Status code is 200
+  √  User ID matches
+
+└ Get All Movies
+  GET http://127.0.0.1:8080/api/movies [200 OK, 2.58kB, 74ms]
+  √  Status code is 200
+  √  Response is an array
+
+└ Create Movie
+  POST http://127.0.0.1:8080/api/movies [201 Created, 246B, 17ms]
+  √  Status code is 201
+  √  Response has id
+
+└ Get Movie by ID
+  GET http://127.0.0.1:8080/api/movies?id=14 [200 OK, 241B, 9ms]
+  √  Status code is 200
+  √  Movie ID matches
+
+└ Create Payment
+  POST http://127.0.0.1:8080/api/payments [201 Created, 192B, 17ms]
+  √  Status code is 201
+  √  Response has id
+
+└ Get Payment by ID
+  GET http://127.0.0.1:8080/api/payments?id=8 [200 OK, 184B, 22ms]
+  √  Status code is 200
+  √  Payment ID matches
+
+└ Create Subscription
+  POST http://127.0.0.1:8080/api/subscriptions [201 Created, 235B, 29ms]
+  √  Status code is 201
+  √  Response has id
+
+└ Get Subscription by ID
+  GET http://127.0.0.1:8080/api/subscriptions?id=8 [200 OK, 230B, 6ms]
+  √  Status code is 200
+  √  Subscription ID matches
+
+□ Movies Microservice
+└ Health Check
+  GET http://127.0.0.1:8081/api/movies/health [200 OK, 124B, 68ms]
+  √  Status code is 200
+  √  Status is true
+
+└ Get All Movies
+  GET http://127.0.0.1:8081/api/movies [200 OK, 2.72kB, 42ms]
+  √  Status code is 200
+  √  Response is an array
+
+└ Create Movie
+  POST http://127.0.0.1:8081/api/movies [201 Created, 282B, 23ms]
+  √  Status code is 201
+  √  Response has id
+
+└ Get Movie by ID
+  GET http://127.0.0.1:8081/api/movies?id=15 [200 OK, 277B, 10ms]
+  √  Status code is 200
+  √  Movie ID matches
+
+□ Events Microservice
+└ Health Check
+  GET http://127.0.0.1:8082/api/events/health [200 OK, 163B, 610ms]
+  √  Status code is 200
+  √  Status is true
+
+└ Create Movie Event
+  POST http://127.0.0.1:8082/api/events/movie [201 Created, 206B, 846ms]
+  √  Status code is 201
+  √  Response has status success
+
+└ Create User Event
+  POST http://127.0.0.1:8082/api/events/user [201 Created, 205B, 659ms]
+  √  Status code is 201
+  √  Response has status success
+
+└ Create Payment Event
+  POST http://127.0.0.1:8082/api/events/payment [201 Created, 208B, 788ms]
+  √  Status code is 201
+  √  Response has status success
+
+□ Proxy Service
+└ Health Check
+  GET http://127.0.0.1:8000/health [200 OK, 163B, 127ms]
+  √  Status code is 200
+
+└ Get All Movies via Proxy
+  GET http://127.0.0.1:8000/api/movies [200 OK, 2.9kB, 98ms]
+  √  Status code is 200
+  √  Response is an array
+
+└ Get All Users via Proxy
+  GET http://127.0.0.1:8000/api/users [200 OK, 636B, 42ms]
+  √  Status code is 200
+  √  Response is an array
+
+┌─────────────────────────┬────────────────────┬───────────────────┐
+│                         │           executed │            failed │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│              iterations │                  1 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│                requests │                 22 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│            test-scripts │                 22 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│      prerequest-scripts │                  0 │                 0 │
+├─────────────────────────┼────────────────────┼───────────────────┤
+│              assertions │                 42 │                 0 │
+├─────────────────────────┴────────────────────┴───────────────────┤
+│ total run duration: 8.3s                                         │
+├──────────────────────────────────────────────────────────────────┤
+│ total data received: 10.14kB (approx)                            │
+├──────────────────────────────────────────────────────────────────┤
+│ average response time: 168ms [min: 6ms, max: 846ms, s.d.: 267ms] │
+└──────────────────────────────────────────────────────────────────┘
+Newman run completed!
+Total requests: 22
+Failed requests: 0
+Total assertions: 42
+Failed assertions: 0
 
 
 ## Задание 3
@@ -249,6 +418,9 @@ cat .docker/config.json | base64
   - добавьте аддон
   ```bash
   minikube addons enable ingress
+  --------
+  в docker-desctop использовал kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+  --------
   ```
   ```bash
   kubectl apply -f src/kubernetes/ingress.yaml
@@ -259,6 +431,8 @@ cat .docker/config.json | base64
   10. Вызовите
   ```bash
   minikube tunnel
+
+  в docker desctop использовал kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 80:80
   ```
   11. Вызовите https://cinemaabyss.example.com/api/movies
   Вы должны увидеть вывод списка фильмов
@@ -273,7 +447,14 @@ cat .docker/config.json | base64
 
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+----------------------------
+Cкриншоты приложены по адресу:
+1. Логи event-service после тестов: 
+/tests/results/EventServiceLogs_Kuber.png
 
+2. Вывод результата при вызове https://cinemaabyss.example.com/api/movies:
+ /tests/results/cinemaabyss_example_com_api_movies.png
+---------------------------
 
 ## Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -345,10 +526,22 @@ kubectl get pods -n cinemaabyss
 minikube tunnel
 ```
 
+----------------------------
+вместо minikube tunnel использовал для docker desctop kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 80:80
+----------------------------
+
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
 
+----------------------------
+Cкриншоты приложены по адресу:
+1. Выполнение команды kubectl get pods -n cinemaabyss: 
+/tests/results/Task4_GetPodsCinemaabyss.png
+
+2. Вывод результата при вызове https://cinemaabyss.example.com/api/movies:
+ /tests/results/Task4_cinaabyss_example_com_api_movies.png
+---------------------------
 
 # Задание 5
 Компания планирует активно развиваться и для повышения надежности, безопасности, реализации сетевых паттернов типа Circuit Breaker и канареечного деплоя вам как архитектору необходимо развернуть istio и настроить circuit breaker для monolith и movies сервисов.
@@ -383,6 +576,11 @@ kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.25/samp
 ```bash
 FORTIO_POD=$(kubectl get pod -n cinemaabyss | grep fortio | awk '{print $1}')
 
+----------------------
+Для windows:
+$FORTIO_POD = kubectl get pod -n cinemaabyss | Select-String "fortio" | ForEach-Object { ($_ -split '\s+')[0] }
+----------------------
+
 kubectl exec -n cinemaabyss $FORTIO_POD -c fortio -- fortio load -c 50 -qps 0 -n 500 -loglevel Warning http://movies-service:8081/api/movies
 ```
 Например,
@@ -405,6 +603,8 @@ Code 503 : 399 (79.8 %)
 ```bash
 kubectl exec -n cinemaabyss fortio-deploy-b6757cbbb-7c9qg -c istio-proxy -- pilot-agent request GET stats | grep movies-service | grep pending
 ```
+Для windows: 
+kubectl exec -n cinemaabyss $FORTIO_POD -c istio-proxy -- pilot-agent request GET stats | Select-String "movies-service" | Select-String "pending"
 
 И там смотрим 
 
@@ -414,6 +614,10 @@ You can see 21 for the upstream_rq_pending_overflow value which means 21 calls s
 ```
 
 Приложите скриншот работы circuit breaker'а
+
+Cкриншоты приложены по адресу:
+1. Статистика, результат: 
+/tests/results/Task5_statistic_result.png
 
 Удаляем все
 ```bash
